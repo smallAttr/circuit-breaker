@@ -42,6 +42,12 @@ public class CircuitBreakerRunner {
         }
     }
 
+    /**
+     * 断线器执行方法
+     *
+     * @param breaker
+     * @param runnable
+     */
     public static void run(CircuitBreaker breaker, Runnable runnable) {
         synchronized (CircuitBreakerRunner.class) {
             log.info("开始执行run方法");
@@ -67,6 +73,7 @@ public class CircuitBreakerRunner {
 
     /**
      * 从缓存中获取断线器，如果获取不到就创建断线器实例
+     *
      * @return
      */
     private static CircuitBreaker getBreaker() {
@@ -85,10 +92,15 @@ public class CircuitBreakerRunner {
             circuitBreaker.setTask(defaultTask);
             breakerCache.put(name, circuitBreaker);
         }
-
         return circuitBreaker;
     }
 
+    /**
+     * 获取首字母小写的类名
+     *
+     * @param simpleName
+     * @return
+     */
     private static String transformedName(String simpleName) {
         return simpleName.substring(0, 1).toLowerCase() + simpleName.substring(1);
     }

@@ -1,6 +1,6 @@
 package com.github.alfred.config;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.concurrent.*;
 
@@ -8,7 +8,7 @@ import java.util.concurrent.*;
  * @author smallAttr
  * @since 2020-12-02 10:04
  */
-@Data
+@Getter
 public class BreakerConfig {
 
     /**
@@ -30,6 +30,9 @@ public class BreakerConfig {
      * 熔断时间单位
      */
     private TimeUnit timeUnit;
+
+    public BreakerConfig() {
+    }
 
     public BreakerConfig(int failureThreshold, int totalCount, int timeout, TimeUnit timeUnit) {
         if (failureThreshold < 1 || totalCount < 1) {

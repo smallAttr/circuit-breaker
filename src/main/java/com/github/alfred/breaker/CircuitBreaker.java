@@ -61,6 +61,7 @@ public class CircuitBreaker {
 
     /**
      * 获取CircuitBreaker对象
+     *
      * @return
      */
     public static CircuitBreaker getInstance() {
