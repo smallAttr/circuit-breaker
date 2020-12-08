@@ -1,8 +1,0 @@
-server:
-    port: 20009
-spring:
-    profiles:
-        active: dev
-    application:
-        name: circuit-breaker
-        description: 断线器

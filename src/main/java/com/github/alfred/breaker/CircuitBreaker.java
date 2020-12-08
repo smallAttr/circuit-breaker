@@ -3,7 +3,7 @@ package com.github.alfred.breaker;
 import com.github.alfred.config.BreakerConfig;
 import com.github.alfred.enums.BreakerStatus;
 import com.github.alfred.fallback.FallbackFactory;
-import com.github.alfred.fallback.impl.DefaultFallback;
+import com.github.alfred.fallback.impl.DefaultFallbackFactory;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.*;
 @Slf4j
 public class CircuitBreaker {
 
-    private static volatile CircuitBreaker INSTANCE;
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
@@ -48,7 +47,7 @@ public class CircuitBreaker {
     /**
      * 断线器启用处理类
      */
-    private FallbackFactory fallbackHandler = new DefaultFallback();
+    private FallbackFactory fallbackFactory = new DefaultFallbackFactory();
 
     /**
      * 定时任务
@@ -56,24 +55,9 @@ public class CircuitBreaker {
     private Runnable task;
 
 
-    private CircuitBreaker() {
+    public CircuitBreaker() {
     }
 
-    /**
-     * 获取CircuitBreaker对象
-     *
-     * @return
-     */
-    public static CircuitBreaker getInstance() {
-        if (INSTANCE == null) {
-            synchronized (CircuitBreaker.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new CircuitBreaker();
-                }
-            }
-        }
-        return INSTANCE;
-    }
 
     public boolean isOpen() {
         return this.status == BreakerStatus.OPEN;
@@ -84,18 +68,21 @@ public class CircuitBreaker {
     }
 
     public void totalCountIncrement() {
-        int currentFailureThreshold = this.failureThreshold.get();
-        int currentTotalCount = this.totalCount.incrementAndGet();
-        // 熔断开启条件
-        if (currentFailureThreshold >= breakerConfig.getFailureThreshold() && currentTotalCount <= breakerConfig.getTotalCount()) {
-            this.status = BreakerStatus.OPEN;
-            // 进入保护期（创建延迟任务，达到指定时间状态变更为关闭状态）
-            executorService.schedule(task, breakerConfig.getTimeout(), breakerConfig.getTimeUnit());
-        } else if (currentFailureThreshold < breakerConfig.getFailureThreshold() && currentTotalCount == breakerConfig.getTotalCount()) {
-            // 请求总数达到指定值 而失败阀值未达到指定值时，重置下断线器
-            resetCircuitBreaker();
-        } else {
-            // do nothing
+        synchronized (this) {
+            int currentFailureThreshold = this.failureThreshold.get();
+            int currentTotalCount = this.totalCount.incrementAndGet();
+            // 熔断开启条件
+            if (currentFailureThreshold >= breakerConfig.getFailureThreshold() && currentTotalCount <= breakerConfig.getTotalCount()) {
+                log.warn("断线器进入启用状态");
+                this.status = BreakerStatus.OPEN;
+                // 进入保护期（创建延迟任务，达到指定时间状态变更为关闭状态）
+                executorService.schedule(task, breakerConfig.getTimeout(), breakerConfig.getTimeUnit());
+            } else if (currentFailureThreshold < breakerConfig.getFailureThreshold() && currentTotalCount == breakerConfig.getTotalCount()) {
+                // 请求总数达到指定值 而失败阀值未达到指定值时，重置下断线器
+                resetCircuitBreaker();
+            } else {
+                // do nothing
+            }
         }
     }
 

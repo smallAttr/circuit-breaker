@@ -1,5 +1,6 @@
-package com.github.alfred.breaker;
+package com.github.alfred.task;
 
+import com.github.alfred.breaker.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 
 
