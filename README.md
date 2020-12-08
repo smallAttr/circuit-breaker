@@ -1,3 +1,3 @@
 # circuit-breaker
 
-逻辑入口：com.github.alfred.breaker.CircuitBreakerRunner#main
+单元测试：com.github.alfred.breaker.CircuitBreakerRunnerTests#circuitBreakerRunner
